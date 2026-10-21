@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CHRONO-02 | Precision Hardware Stopwatch</title>
+  <meta name="description" content="High-precision 3D mechanical and digital stopwatch web application with lap telemetry.">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23f59e0b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><circle cx='12' cy='13' r='8'/><path d='M12 9v4l2 2'/><path d='M5 3 2 6'/><path d='m22 6-3-3'/><path d='M10 2h4'/></svg>" type="image/svg+xml">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <main class="workbench">
+    <!-- 3D Hardware Chassis -->
+    <section class="chrono-chassis" aria-label="Precision Chronometer Unit">
+      
+      <!-- Top Hardware Fasteners & Serial Plate -->
+      <div class="chassis-rail">
+        <div class="screw"><span class="screw-slot"></span></div>
+        <div class="serial-plate">
+          <span class="plate-model">MODEL // CHRONO-02 TIMING DECK</span>
+          <span class="plate-spec">QUARTZ DELTA ENGINE 1000HZ</span>
+        </div>
+        <div class="screw"><span class="screw-slot rotated"></span></div>
+      </div>
+
+      <!-- Main Instrument Deck -->
+      <div class="instrument-grid">
+        
+        <!-- Left Column: 3D Analog Gauge & Physical Controls -->
+        <div class="chronograph-module">
+          
+          <!-- 3D Recessed Analog Dial -->
+          <div class="bezel-ring">
+            <div class="analog-face">
+              <div class="glass-reflection"></div>
+              <svg class="dial-svg" viewBox="0 0 260 260" aria-hidden="true">
+                <!-- Minute Sub-dial (Top) -->
+                <g class="subdial" transform="translate(130, 82)">
+                  <circle cx="0" cy="0" r="34" class="subdial-ring" />
+                  <g id="subdialTicks"></g>
+                  <text x="0" y="18" class="subdial-label">MIN</text>
+                  <line id="minuteHand" x1="0" y1="6" x2="0" y2="-28" class="subdial-hand" />
+                  <circle cx="0" cy="0" r="3.5" class="subdial-cap" />
+                </g>
+
+                <!-- Main 60-Second Outer Track -->
+                <g id="mainDialTicks" transform="translate(130, 130)"></g>
+
+                <!-- Brand Engraving on Dial -->
+                <text x="130" y="176" class="dial-engraving">CHRONO-02</text>
+                <text x="130" y="190" class="dial-sub-engraving">1/100 SEC</text>
+
+                <!-- Sweeping Second Hand -->
+                <g id="secondHandGroup" transform="translate(130, 130)">
+                  <line x1="0" y1="24" x2="0" y2="-104" class="second-hand-shadow" />
+                  <line x1="0" y1="24" x2="0" y2="-104" class="second-hand" />
+                  <circle cx="0" cy="0" r="7" class="center-pin-outer" />
+                  <circle cx="0" cy="0" r="3" class="center-pin-inner" />
+                </g>
+              </svg>
+            </div>
+          </div>
+
+          <!-- Status Indicator Bar -->
+          <div class="status-strip">
+            <div class="led-indicator">
+              <span class="led-bulb" id="statusLed"></span>
+              <span class="led-label" id="statusText">STANDBY</span>
+            </div>
+            <button type="button" class="audio-switch" id="audioToggle" aria-pressed="true" title="Toggle Mechanical Switch Click">
+              <span class="switch-led active" id="audioLed"></span>
+              <span class="switch-text">ACOUSTIC CLICK: ON</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Right Column: Recessed Digital Readout & Switch Bank -->
+        <div class="control-module">
+          
+          <!-- Recessed Backlit Digital LCD Screen -->
+          <div class="lcd-bezel">
+            <div class="lcd-screen">
+              <div class="lcd-header">
+                <span>MAIN CHRONOGRAPH TIME</span>
+                <span id="lapCounterBadge">LAP 00</span>
+              </div>
+
+              <!-- Main Digital Readout with Ghost Segments -->
+              <div class="digital-readout-wrapper">
+                <div class="digital-ghost" aria-hidden="true">88:88:88.88</div>
+                <div class="digital-active" id="mainDisplay" role="timer" aria-live="off">
+                  <span id="dispHours">00</span>:<span id="dispMinutes">00</span>:<span id="dispSeconds">00</span><span class="ms-dot">.</span><span id="dispMillis" class="ms-digits">00</span>
+                </div>
+              </div>
+
+              <!-- Secondary Split / Current Lap Readout -->
+              <div class="lcd-sub-row">
+                <div class="sub-metric">
+                  <span class="sub-label">CURRENT LAP SPLIT</span>
+                  <span class="sub-value" id="currentLapDisplay">00:00:00.00</span>
+                </div>
+                <div class="sub-metric right">
+                  <span class="sub-label">AVERAGE LAP</span>
+                  <span class="sub-value" id="avgLapDisplay">00:00:00.00</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 3D Mechanical Push-Button Bank -->
+          <div class="switch-bank">
+            <button type="button" class="mech-btn btn-start" id="startStopBtn" data-key="Space">
+              <span class="btn-cap">
+                <span class="btn-top-row">
+                  <span class="btn-led" id="startLed"></span>
+                  <span class="btn-shortcut">[SPACE]</span>
+                </span>
+                <span class="btn-title" id="startStopLabel">START</span>
+                <span class="btn-subtitle">ENGAGE TIMER</span>
+              </span>
+            </button>
+
+            <button type="button" class="mech-btn btn-lap" id="lapBtn" data-key="KeyL" disabled>
+              <span class="btn-cap">
+                <span class="btn-top-row">
+                  <span class="btn-led" id="lapLed"></span>
+                  <span class="btn-shortcut">[L]</span>
+                </span>
+                <span class="btn-title">LAP / SPLIT</span>
+                <span class="btn-subtitle">RECORD INTERVAL</span>
+              </span>
+            </button>
+
+            <button type="button" class="mech-btn btn-reset" id="resetBtn" data-key="KeyR" disabled>
+              <span class="btn-cap">
+                <span class="btn-top-row">
+                  <span class="btn-led"></span>
+                  <span class="btn-shortcut">[R]</span>
+                </span>
+                <span class="btn-title">RESET</span>
+                <span class="btn-subtitle">ZERO REGISTER</span>
+              </span>
+            </button>
+          </div>
+
+          <!-- Telemetry Summary Strip -->
+          <div class="telemetry-summary">
+            <div class="telemetry-box">
+              <span class="tel-label">FASTEST SPLIT</span>
+              <span class="tel-val fast" id="bestLapDisplay">--:--:--.--</span>
+            </div>
+            <div class="telemetry-box">
+              <span class="tel-label">SLOWEST SPLIT</span>
+              <span class="tel-val slow" id="worstLapDisplay">--:--:--.--</span>
+            </div>
+            <div class="telemetry-box">
+              <span class="tel-label">DELTA SPREAD</span>
+              <span class="tel-val" id="spreadDisplay">--:--:--.--</span>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Recessed Lap Telemetry Deck -->
+      <div class="lap-deck">
+        <div class="lap-deck-header">
+          <div class="deck-title-group">
+            <h2 class="deck-title">INTERVAL TELEMETRY REGISTER</h2>
+            <span class="deck-subtitle">REAL-TIME SPLIT DIFFERENTIAL LOG</span>
+          </div>
+          <button type="button" class="export-btn" id="exportCsvBtn" disabled>
+            EXPORT CSV
+          </button>
+        </div>
+
+        <div class="table-viewport">
+          <table class="lap-table">
+            <thead>
+              <tr>
+                <th>LAP NO.</th>
+                <th>SPLIT INTERVAL</th>
+                <th>CUMULATIVE TIME</th>
+                <th>VARIANCE / TAG</th>
+              </tr>
+            </thead>
+            <tbody id="lapTableBody">
+              <tr class="empty-row">
+                <td colspan="4">NO INTERVAL DATA RECORDED. ENGAGE TIMER AND PRESS [LAP] TO LOG SPLITS.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Bottom Hardware Fasteners -->
+      <div class="chassis-rail bottom-rail">
+        <div class="screw"><span class="screw-slot rotated"></span></div>
+        <div class="chassis-vent">
+          <span></span><span></span><span></span><span></span><span></span><span></span>
+        </div>
+        <div class="screw"><span class="screw-slot"></span></div>
+      </div>
+
+    </section>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>
